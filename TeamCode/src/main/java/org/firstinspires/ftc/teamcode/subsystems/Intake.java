@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 /**
  * Intake: pulls game pieces into the robot (intake) or spits them back out (outtake).
  * <p>
@@ -14,7 +16,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
  *     <li>Uncomment the bodies of the methods below and tune the powers.</li>
  * </ol>
  */
-public class IntakeSubsystem extends SubsystemBase {
+public class Intake extends SubsystemBase {
     public enum State {
         IDLE,
         INTAKING,
@@ -25,14 +27,18 @@ public class IntakeSubsystem extends SubsystemBase {
     public static double INTAKE_POWER = 1.0;
     public static double OUTTAKE_POWER = -1.0;
 
+    private final Telemetry telemetry;
+
     // --- Hardware (commented out until the mechanism exists) ---
     // private final MotorEx intakeMotor;           // com.seattlesolvers.solverslib.hardware.motors.MotorEx
     // private final DistanceSensor pieceSensor;    // com.qualcomm.robotcore.hardware.DistanceSensor (if we add one)
 
     private State state = State.IDLE;
 
-    public IntakeSubsystem(HardwareMap hardwareMap) {
-        // intakeMotor = new MotorEx(hardwareMap, "intake");
+    public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
+        // intakeMotor = new MotorEx(hardwareMap, "INTAKE");
         // intakeMotor.setRunMode(Motor.RunMode.RawPower);
         // intakeMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         // intakeMotor.setInverted(false);
@@ -69,7 +75,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Runs every loop. Example for later: auto-stop once a piece is inside
-        // if (state == State.INTAKING && hasGamePiece()) stop();
+        telemetry.addData("Intake", state);
     }
 }

@@ -1,17 +1,17 @@
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.commands.intake;
 
 import com.seattlesolvers.solverslib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 /**
  * Runs the intake outwards (spit out / unjam) until interrupted. Bind it with {@code whenHeld}, or
  * add {@code .withTimeout(ms)} in Autonomous, since it never ends by itself.
  */
-public class OuttakeCommand extends CommandBase {
-    private final IntakeSubsystem intake;
+public class IntakeOut extends CommandBase {
+    private final Intake intake;
 
-    public OuttakeCommand(IntakeSubsystem intake) {
+    public IntakeOut(Intake intake) {
         this.intake = intake;
         addRequirements(intake);
     }

@@ -6,26 +6,30 @@ import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 /**
  * Drivetrain, backed by the Pedro Pathing {@link Follower}.
  * <p>
- * Unlike the other subsystems this one is live: it uses the motor/odometry names and tuning in
- * {@link Constants}. Autonomous can pass {@link #getFollower()} to the SolversLib Pedro commands
- * (FollowPathCommand, TurnCommand, ...). {@link #periodic()} calls {@code follower.update()} every
- * loop, so OpModes using this subsystem must NOT also call {@code follower.update()}.
+ * TeleOp and Autonomous share this one drivetrain: the same motors, odometry (Pinpoint) and pose.
+ * Motor names, directions and tuning live in {@link Constants}. Autonomous passes
+ * {@link #getFollower()} to the SolversLib Pedro commands (FollowPathCommand, TurnCommand, ...).
+ * <p>
+ * {@link #periodic()} calls {@code follower.update()} every loop, so OpModes must NOT also call it.
  */
-public class DriveSubsystem extends SubsystemBase {
+public class Drivetrain extends SubsystemBase {
     private final Follower follower;
+    private final Telemetry telemetry;
 
-    public DriveSubsystem(HardwareMap hardwareMap) {
+    public Drivetrain(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
         follower = Constants.createFollower(hardwareMap);
     }
 
     /**
-     * Field-centric drive. Inputs are in Pedro's frame: +forward, +left, +counterclockwise,
-     * so pass the gamepad sticks negated (see MainTeleOp).
+     * Field-centric drive. Inputs are in Pedro's frame: +forward, +left, +counterclockwise
+     * (see DriveWithController for the gamepad conversion).
      */
     public void driveFieldCentric(double forward, double left, double turn) {
         follower.manual(ManualDrive.fieldCentric(forward, left, turn, follower.pose().heading()));
@@ -34,6 +38,10 @@ public class DriveSubsystem extends SubsystemBase {
     /** Robot-centric drive, same input frame as {@link #driveFieldCentric}. */
     public void driveRobotCentric(double forward, double left, double turn) {
         follower.manual(forward, left, turn);
+    }
+
+    public void stop() {
+        follower.manual(0, 0, 0);
     }
 
     /** Makes the robot's current facing the new "forward" for field-centric driving. */
@@ -57,5 +65,9 @@ public class DriveSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         follower.update();
+
+        Pose pose = follower.pose();
+        telemetry.addData("Pose", "x %.1f  y %.1f  heading %.1f°",
+                pose.x(), pose.y(), Math.toDegrees(pose.heading()));
     }
 }

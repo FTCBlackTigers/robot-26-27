@@ -3,8 +3,13 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 /**
- * Shooter: a flywheel that launches game pieces, plus a feeder that pushes a piece into it.
+ * Shooter: a flywheel that launches game pieces, plus a feeder (kicker) that pushes a piece into it.
+ * Unlike last season's open-loop power, the flywheel is meant to run on velocity control, so shots
+ * stay consistent as the battery drains. If the feeder ends up being its own mechanism, split it into
+ * a separate subsystem.
  * <p>
  * PLACEHOLDER: the robot isn't built yet, so every hardware line is commented out and the methods
  * only track {@link #getState()}. Once the mechanism exists:
@@ -14,7 +19,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
  *     <li>Uncomment the bodies of the methods below and tune the velocity / PIDF values.</li>
  * </ol>
  */
-public class ShooterSubsystem extends SubsystemBase {
+public class Shooter extends SubsystemBase {
     public enum State {
         IDLE,
         SPINNING_UP,
@@ -27,6 +32,8 @@ public class ShooterSubsystem extends SubsystemBase {
     public static double FEEDER_REST = 0.0;
     public static double FEEDER_PUSH = 0.5;
 
+    private final Telemetry telemetry;
+
     // --- Hardware (commented out until the mechanism exists) ---
     // private final MotorEx flywheel;   // com.seattlesolvers.solverslib.hardware.motors.MotorEx
     // private final ServoEx feeder;     // com.seattlesolvers.solverslib.hardware.ServoEx
@@ -34,8 +41,10 @@ public class ShooterSubsystem extends SubsystemBase {
     private State state = State.IDLE;
     private double targetVelocity = 0;
 
-    public ShooterSubsystem(HardwareMap hardwareMap) {
-        // flywheel = new MotorEx(hardwareMap, "flywheel");
+    public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
+        // flywheel = new MotorEx(hardwareMap, "SHOOTER");
         // flywheel.setRunMode(Motor.RunMode.VelocityControl);
         // flywheel.setVeloCoefficients(0.01, 0, 0);   // P, I, D
         // flywheel.setFeedforwardCoefficients(0, 1);  // kS, kV
@@ -85,10 +94,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Runs every loop: flip SPINNING_UP -> READY once the flywheel reaches the target
+        // Flip SPINNING_UP -> READY once the flywheel reaches the target
         // if (state != State.IDLE) {
         //     boolean atSpeed = Math.abs(flywheel.getVelocity() - targetVelocity) < VELOCITY_TOLERANCE;
         //     state = atSpeed ? State.READY : State.SPINNING_UP;
         // }
+
+        telemetry.addData("Shooter", "%s (target %.0f)", state, targetVelocity);
     }
 }

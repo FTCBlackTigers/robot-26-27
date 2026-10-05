@@ -2,23 +2,30 @@
 
 A **command** is one robot action ("intake until we have a piece", "shoot"), built from
 **subsystem** methods. Subsystems say *what the hardware can do*; commands say *when and in what
-order*. OpModes just bind commands to buttons (TeleOp) or chain them (Autonomous).
+order*. `Robot.java` binds commands to buttons (TeleOp); autos chain them (`AutonomousBase`).
 
 Source: SolversLib docs, https://docs.seattlesolvers.com/command-base/command-system
 
-## What's in this folder
+## Layout
+
+One folder per subsystem for small single-subsystem commands, plus `automations/` for sequences
+that combine them (same layout as robot-25-26). One class per action, named by what it does.
 
 | Command | Requires | What it does | Ends when |
 |---|---|---|---|
-| `IntakeCommand` | intake | Runs the intake inwards, stops it at the end | a piece is detected, or interrupted (button released) |
-| `OuttakeCommand` | intake | Runs the intake outwards, stops it at the end | interrupted (button released) |
-| `SpinUpShooterCommand` | shooter | Starts the flywheel | flywheel is at speed |
-| `ShootCommand` | shooter | Spin up (with timeout) → feed → wait → retract | sequence done |
-| `AimAtTargetCommand` | drive | SHELL: turn toward the Limelight target | right away, until it's written |
+| `drive/DriveWithController` | drivetrain | Field-centric driving from a gamepad (TeleOp default command) | interrupted |
+| `drive/ResetHeading` | nothing | Current facing becomes "forward" | right away |
+| `drive/AimAtTarget` | drivetrain | SHELL: turn toward the Limelight target | right away, until it's written |
+| `intake/IntakeIn` | intake | Runs the intake inwards, stops it at the end | a piece is detected, or interrupted |
+| `intake/IntakeOut` | intake | Runs the intake outwards, stops it at the end | interrupted |
+| `shooter/SpinUp` | shooter | Starts the flywheel | flywheel is at speed |
+| `shooter/Feed` | shooter | Pushes a piece in, waits, retracts | after `FEED_TIME_MS` |
+| `shooter/StopShooter` | shooter | Stops flywheel, retracts feeder | right away |
+| `automations/Shoot` | shooter | `SpinUp` (with timeout) → `Feed` | sequence done |
 
 Intake and shooter are still placeholders (see `subsystems/`), so these commands run their logic
 but nothing moves. `hasGamePiece()` and `isReady()` are always false for now, so
-`IntakeCommand` only ends on release and `ShootCommand` relies on its spin-up timeout.
+`IntakeIn` only ends on release and `Shoot` relies on its spin-up timeout.
 
 ## The command lifecycle
 
@@ -44,8 +51,9 @@ command is interrupted (its `end(true)` runs) and the new one starts. Forgetting
 ## Default commands
 
 `subsystem.setDefaultCommand(cmd)` runs `cmd` whenever nothing else uses that subsystem.
-`MainTeleOp` uses this for driving: the drive default command reads the sticks, and any other
-command that requires `drive` (like aiming) takes over and then hands control back.
+`Robot.configureTeleOp` uses this for driving: `DriveWithController` reads the sticks, and any
+other command that requires the drivetrain (like `AimAtTarget`) takes over and then hands control
+back.
 
 ## Scheduler
 
@@ -94,16 +102,19 @@ subsystem when they run in parallel.
 | `.beforeStarting(runnable)` / `.whenFinished(runnable)` | small extra actions |
 | `.perpetually()` | never ends by itself |
 
-Example: `new SpinUpShooterCommand(shooter).withTimeout(1500).andThen(new InstantCommand(shooter::feed, shooter))`
+Example: `new SpinUp(shooter).withTimeout(1500).andThen(new Feed(shooter))` (that's what
+`automations/Shoot` is).
 
 ## Binding to buttons (TeleOp)
+
+All bindings live in `Robot.configureTeleOp`:
 
 ```java
 GamepadEx operator = new GamepadEx(gamepad2);
 operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-        .whenHeld(new IntakeCommand(intake));   // starts on press, cancelled on release
+        .whenHeld(new IntakeIn(intake));   // starts on press, cancelled on release
 operator.getGamepadButton(GamepadKeys.Button.X)
-        .whenPressed(new ShootCommand(shooter)); // starts on press, runs to the end
+        .whenPressed(new Shoot(shooter));  // starts on press, runs to the end
 ```
 
 | Binding | Behavior |
@@ -115,17 +126,22 @@ operator.getGamepadButton(GamepadKeys.Button.X)
 | `toggleWhenPressed(cmd)` | press to start, press again to cancel |
 
 Prefer `whenHeld` for "hold to run" commands that can finish by themselves (like
-`IntakeCommand`). `whileHeld` would restart them right after they finish.
+`IntakeIn`). `whileHeld` would restart them right after they finish.
+
+For triggers (analog), wrap them: `new Trigger(() -> operator.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5)`.
 
 ## Autonomous
 
-Chain commands with Pedro's path commands in a `SequentialCommandGroup`, see
-`samples/PedroAutoSample.java`:
+Extend `opmodes/AutonomousBase` and return the whole routine as one command. Chain Pedro's path
+commands with ours (paths: see `samples/PedroAutoSample.java`):
 
 ```java
-schedule(new SequentialCommandGroup(
-        new FollowPathCommand(follower, toScore),
-        new ShootCommand(shooter),
-        new FollowPathCommand(follower, toPickup).alongWith(new IntakeCommand(intake).withTimeout(2000))
-));
+protected Command routine(Robot robot) {
+    Follower follower = robot.drivetrain.getFollower();
+    return new SequentialCommandGroup(
+            new FollowPathCommand(follower, toScore),
+            new Shoot(robot.shooter),
+            new FollowPathCommand(follower, toPickup).alongWith(new IntakeIn(robot.intake).withTimeout(2000))
+    );
+}
 ```

@@ -1,19 +1,19 @@
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.commands.intake;
 
 import com.seattlesolvers.solverslib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 /**
  * Runs the intake inwards until a game piece is inside, or until interrupted (e.g. the button
  * bound with {@code whenHeld} is released). Always stops the intake at the end.
  * <p>
- * IntakeSubsystem is still a placeholder, so for now this never detects a piece and nothing spins.
+ * Intake is still a placeholder, so for now this never detects a piece and nothing spins.
  */
-public class IntakeCommand extends CommandBase {
-    private final IntakeSubsystem intake;
+public class IntakeIn extends CommandBase {
+    private final Intake intake;
 
-    public IntakeCommand(IntakeSubsystem intake) {
+    public IntakeIn(Intake intake) {
         this.intake = intake;
         addRequirements(intake);
     }

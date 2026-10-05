@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.Collections;
@@ -23,14 +24,16 @@ import java.util.List;
  * If the Limelight isn't in the configuration, this subsystem stays inactive instead of crashing
  * the OpMode: {@link #isConnected()} is false and every getter reports "no target".
  */
-public class VisionSubsystem extends SubsystemBase {
+public class Limelight extends SubsystemBase {
     public static final String DEVICE_NAME = "limelight";
     public static int DEFAULT_PIPELINE = 0;
 
     private final Limelight3A limelight; // null when not configured
+    private final Telemetry telemetry;
     private LLResult latest;
 
-    public VisionSubsystem(HardwareMap hardwareMap) {
+    public Limelight(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
         limelight = hardwareMap.tryGet(Limelight3A.class, DEVICE_NAME);
         if (limelight != null) {
             limelight.setPollRateHz(100);
@@ -70,8 +73,15 @@ public class VisionSubsystem extends SubsystemBase {
         return hasTarget() ? latest.getFiducialResults() : Collections.<LLResultTypes.FiducialResult>emptyList();
     }
 
+    /** ID of the first AprilTag seen, or -1 when none. */
+    public int getAprilTagId() {
+        List<LLResultTypes.FiducialResult> tags = getAprilTags();
+        return tags.isEmpty() ? -1 : tags.get(0).getFiducialId();
+    }
+
     /**
-     * Robot pose on the field from AprilTags (MegaTag1), or null with no target.
+     * Robot pose on the field from AprilTags (MegaTag1), or null with no target. Position is in
+     * meters: use {@code getPosition().toUnit(DistanceUnit.INCH)} for Pedro's inches.
      * Needs the field map + camera position set in the Limelight web UI. For MegaTag2 call
      * {@link #updateRobotYaw} every loop and use {@code getBotpose_MT2()} instead.
      */
@@ -99,5 +109,13 @@ public class VisionSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (limelight != null) latest = limelight.getLatestResult();
+
+        if (!isConnected()) {
+            telemetry.addData("Limelight", "not connected");
+        } else if (!hasTarget()) {
+            telemetry.addData("Limelight", "no target");
+        } else {
+            telemetry.addData("Limelight", "tx %.1f°  ty %.1f°  tag %d", getTx(), getTy(), getAprilTagId());
+        }
     }
 }

@@ -2,9 +2,10 @@
 
 | Folder | What lives there |
 |---|---|
-| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`). `IntakeSubsystem` and `ShooterSubsystem` are placeholders: hardware lines are commented out until the robot is built. `DriveSubsystem` (Pedro follower) and `VisionSubsystem` (Limelight 3A) are live. |
-| `commands/` | Robot actions built from subsystem methods. Has its own README explaining the SolversLib command system. |
-| `opmodes/` | Our real OpModes. `MainTeleOp` = driver control, built on SolversLib `CommandOpMode`. |
+| `Robot.java` | Creates every subsystem once and holds all TeleOp button bindings. Every OpMode builds one. |
+| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` and `Shooter` are placeholders: hardware lines are commented out until the robot is built. `Drivetrain` (Pedro follower, shared by TeleOp and auto) and `Limelight` (Limelight 3A) are live. |
+| `commands/` | One folder per subsystem + `automations/` for sequences. Has its own README explaining the SolversLib command system. |
+| `opmodes/` | `MainTeleOp` (a few lines, everything is in `Robot`) and `AutonomousBase` (extend it for each auto). |
 | `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera). |
 | `pedroPathing/` | Pedro Pathing 3 config (`Constants`) and the AutoTune procedures (`Tuning`). |
 | `samples/` | Reference Pedro + SolversLib OpModes. Copy from them, don't build on them. |

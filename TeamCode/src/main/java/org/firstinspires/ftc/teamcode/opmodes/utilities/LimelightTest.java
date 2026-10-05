@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 
 /**
  * Checks the Limelight 3A: shows connection, pipeline, target angles, AprilTag IDs and botpose.
@@ -16,45 +16,42 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 public class LimelightTest extends LinearOpMode {
     @Override
     public void runOpMode() {
-        VisionSubsystem vision = new VisionSubsystem(hardwareMap);
-        int pipeline = VisionSubsystem.DEFAULT_PIPELINE;
+        Limelight limelight = new Limelight(hardwareMap, telemetry);
+        int pipeline = Limelight.DEFAULT_PIPELINE;
         boolean lastUp = false, lastDown = false;
 
         telemetry.setMsTransmissionInterval(11);
 
         while (opModeInInit()) {
-            vision.periodic();
-            telemetry.addData("Limelight connected", vision.isConnected());
-            telemetry.addLine(vision.isConnected()
+            limelight.periodic();
+            telemetry.addLine(limelight.isConnected()
                     ? "Press START"
-                    : "Not found: add it to the robot configuration as \"" + VisionSubsystem.DEVICE_NAME + "\"");
+                    : "Not found: add it to the robot configuration as \"" + Limelight.DEVICE_NAME + "\"");
             telemetry.update();
         }
 
         while (opModeIsActive()) {
-            // Not a command OpMode, so periodic() is called by hand
-            vision.periodic();
+            // Not a command OpMode, so periodic() is called by hand (it also adds a summary line)
+            limelight.periodic();
 
-            if (gamepad1.dpad_up && !lastUp && pipeline < 9) vision.switchPipeline(++pipeline);
-            if (gamepad1.dpad_down && !lastDown && pipeline > 0) vision.switchPipeline(--pipeline);
+            if (gamepad1.dpad_up && !lastUp && pipeline < 9) limelight.switchPipeline(++pipeline);
+            if (gamepad1.dpad_down && !lastDown && pipeline > 0) limelight.switchPipeline(--pipeline);
             lastUp = gamepad1.dpad_up;
             lastDown = gamepad1.dpad_down;
 
-            telemetry.addData("Connected", vision.isConnected());
-            telemetry.addData("Pipeline (requested / running)", "%d / %d", pipeline, vision.getPipelineIndex());
-            telemetry.addData("Has target", vision.hasTarget());
-            telemetry.addData("tx / ty / ta", "%.2f / %.2f / %.2f", vision.getTx(), vision.getTy(), vision.getTa());
+            telemetry.addData("Pipeline (requested / running)", "%d / %d", pipeline, limelight.getPipelineIndex());
+            telemetry.addData("tx / ty / ta", "%.2f / %.2f / %.2f", limelight.getTx(), limelight.getTy(), limelight.getTa());
 
-            for (LLResultTypes.FiducialResult tag : vision.getAprilTags()) {
+            for (LLResultTypes.FiducialResult tag : limelight.getAprilTags()) {
                 telemetry.addData("AprilTag " + tag.getFiducialId(), "x %.1f°, y %.1f°",
                         tag.getTargetXDegrees(), tag.getTargetYDegrees());
             }
 
-            Pose3D botpose = vision.getBotpose();
+            Pose3D botpose = limelight.getBotpose();
             telemetry.addData("Botpose", botpose != null ? botpose.toString() : "none");
             telemetry.update();
         }
 
-        vision.stop();
+        limelight.stop();
     }
 }
