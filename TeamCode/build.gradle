@@ -1,4 +1,20 @@
+// Sloth Load plugin (fast deploys). See https://github.com/Dairy-Foundation/Sloth
+// Keep this version in sync with the Sloth, Slothboard and Panels versions below.
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.3.2"
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 //
 // build.gradle in TeamCode
@@ -26,10 +42,6 @@ android {
 
 repositories {
     maven {
-        url = 'https://maven.brott.dev/'
-    }
-
-    maven {
         url = 'https://mymaven.bylazar.com/releases'
     }
 
@@ -52,12 +64,16 @@ dependencies {
     implementation "org.solverslib:pedroPathing:0.3.6" // pedroPathing
     implementation "org.solverslib:photon:0.3.6" // photon is optional (see docs for more info)
 
-    implementation "com.acmerobotics.dashboard:dashboard:0.5.1" // FTC Dashboard
+    // Sloth: hot reload of TeamCode. Deploy with the `deploySloth` Gradle task (see TeamCode readme).
+    implementation "dev.frozenmilk.sinister:Sloth:0.3.2"
+
+    // FTC Dashboard, Sloth fork (the normal com.acmerobotics.dashboard build breaks Sloth hot reload)
+    implementation "com.acmerobotics.slothboard:dashboard:0.3.2+0.6.0"
 
     // Pedro Pathing
     implementation 'com.pedropathing:revhub:3.0.0'
     implementation 'com.pedropathing:tuning:1.0.0' // AutoTune (see Tuning.java)
 
-    // Panels Dashboard
-    implementation "com.bylazar:fullpanels:1.0.12"
+    // Panels Dashboard, Sloth fork (the normal com.bylazar build breaks Sloth hot reload)
+    implementation "com.bylazar.sloth:fullpanels:0.3.2+1.0.13"
 }
