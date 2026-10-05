@@ -2,23 +2,39 @@
 
 | Folder | What lives there |
 |---|---|
-| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`). `IntakeSubsystem` and `ShooterSubsystem` are placeholders: hardware lines are commented out until the robot is built. `DriveSubsystem` is live (Pedro follower). |
+| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`). `IntakeSubsystem` and `ShooterSubsystem` are placeholders: hardware lines are commented out until the robot is built. `DriveSubsystem` (Pedro follower) and `VisionSubsystem` (Limelight 3A) are live. |
+| `commands/` | Robot actions built from subsystem methods. Has its own README explaining the SolversLib command system. |
 | `opmodes/` | Our real OpModes. `MainTeleOp` = driver control, built on SolversLib `CommandOpMode`. |
-| `pedroPathing/` | Pedro Pathing 3 config (`Constants`). |
+| `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera). |
+| `pedroPathing/` | Pedro Pathing 3 config (`Constants`) and the AutoTune procedures (`Tuning`). |
 | `samples/` | Reference Pedro + SolversLib OpModes. Copy from them, don't build on them. |
 
 To bring a placeholder subsystem to life: uncomment its hardware fields, constructor lines and
 method bodies, fix the imports, and make the device names match the Driver Station configuration.
 
-### Sloth and AutoTune are disabled for now
+### Robot configuration names
 
-Sloth (fast deploys) was removed because it was suspected of stopping the Robot Controller app
-from starting (Control Hub stuck on solid blue). Pedro's AutoTune depends on Sloth, so its files
-are parked in `TeamCode/disabled-autotune/` and are not built. Deploy with the normal green Run
-arrow. To re-enable either one, see the comments in `TeamCode/build.gradle`.
+Drive: `LF`, `LB`, `RF`, `RB`. Others: `INTAKE`, `SHOOTER` (used by `MotorTest`), `pinpoint`
+(odometry), `limelight` (camera). Names are case-sensitive.
 
-If the robot ever received a Sloth deploy, clear the leftover Sloth code:
-`adb shell rm -rf /storage/emulated/0/FIRST/dairy/sloth/*`
+### Fast deploys (Sloth)
+
+Sloth hot reloads TeamCode in about a second instead of a full ~40 s install.
+
+1. Do one normal install first (green Run arrow, `TeamCode`), and again any time you change
+   libraries/Gradle files or anything outside `org.firstinspires.ftc.teamcode`.
+2. After that, pick the shared **deploySloth** run configuration and run it. Changes apply when
+   the current OpMode ends.
+3. One-time per computer: Run > Edit Configurations > `TeamCode` > Before launch > + >
+   Run Gradle task, Gradle project `:TeamCode`, task `removeSlothRemote`, and move it to the top.
+   This stops old Sloth code from overriding a fresh full install.
+
+If the Control Hub sticks on solid blue after an install, suspect Sloth first: it was removed once
+for exactly that (commit `3680d6d`) and the hub recovered. Clear its cache with
+`adb shell rm -rf /storage/emulated/0/FIRST/dairy/sloth/*` and/or revert to that commit.
+
+Dashboards: FTC Dashboard and Panels are the Sloth-compatible forks
+(`com.acmerobotics.slothboard`, `com.bylazar.sloth`). Do not add the normal artifacts back.
 
 ---
 

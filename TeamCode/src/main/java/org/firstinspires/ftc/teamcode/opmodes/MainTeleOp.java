@@ -8,9 +8,13 @@ import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
+import org.firstinspires.ftc.teamcode.commands.IntakeCommand;
+import org.firstinspires.ftc.teamcode.commands.OuttakeCommand;
+import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 /**
  * Main driver-controlled OpMode.
@@ -18,14 +22,17 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
  * gamepad1 (driver): sticks = field-centric drive, OPTIONS = reset heading.
  * <br>
  * gamepad2 (operator): RB hold = intake, LB hold = outtake, A = shooter spin up, B = shooter stop,
- * X = feed. Intake and shooter are placeholders, so those buttons only change the state shown on
- * telemetry until the hardware code is uncommented.
+ * X = shoot one piece. Intake and shooter are placeholders, so those buttons only change the state
+ * shown on telemetry until the hardware code is uncommented.
+ * <br>
+ * The Limelight is optional: without it in the configuration, telemetry just shows it as not connected.
  */
 @TeleOp(name = "Main TeleOp", group = "Competition")
 public class MainTeleOp extends CommandOpMode {
     private DriveSubsystem drive;
     private IntakeSubsystem intake;
     private ShooterSubsystem shooter;
+    private VisionSubsystem vision;
 
     private final TelemetryData telemetryData = new TelemetryData(telemetry);
 
@@ -36,7 +43,8 @@ public class MainTeleOp extends CommandOpMode {
         drive = new DriveSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
-        register(drive, intake, shooter);
+        vision = new VisionSubsystem(hardwareMap);
+        register(drive, intake, shooter, vision);
 
         GamepadEx driver = new GamepadEx(gamepad1);
         GamepadEx operator = new GamepadEx(gamepad2);
@@ -53,13 +61,11 @@ public class MainTeleOp extends CommandOpMode {
         driver.getGamepadButton(GamepadKeys.Button.OPTIONS)
                 .whenPressed(new InstantCommand(drive::resetHeading));
 
-        // Operator: intake
+        // Operator: intake (whenHeld = start on press, cancel on release)
         operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whenPressed(new InstantCommand(intake::intake, intake))
-                .whenReleased(new InstantCommand(intake::stop, intake));
+                .whenHeld(new IntakeCommand(intake));
         operator.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
-                .whenPressed(new InstantCommand(intake::outtake, intake))
-                .whenReleased(new InstantCommand(intake::stop, intake));
+                .whenHeld(new OuttakeCommand(intake));
 
         // Operator: shooter
         operator.getGamepadButton(GamepadKeys.Button.A)
@@ -67,8 +73,7 @@ public class MainTeleOp extends CommandOpMode {
         operator.getGamepadButton(GamepadKeys.Button.B)
                 .whenPressed(new InstantCommand(shooter::stop, shooter));
         operator.getGamepadButton(GamepadKeys.Button.X)
-                .whenPressed(new InstantCommand(shooter::feed, shooter))
-                .whenReleased(new InstantCommand(shooter::retractFeeder, shooter));
+                .whenPressed(new ShootCommand(shooter));
     }
 
     @Override
@@ -82,6 +87,9 @@ public class MainTeleOp extends CommandOpMode {
         telemetryData.addData("Heading", drive.getPose().heading());
         telemetryData.addData("Intake", intake.getState());
         telemetryData.addData("Shooter", shooter.getState());
+        telemetryData.addData("Limelight", vision.isConnected()
+                ? (vision.hasTarget() ? String.format("target tx %.1f°", vision.getTx()) : "no target")
+                : "not connected");
         telemetryData.update();
     }
 }

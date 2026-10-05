@@ -18,16 +18,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * Pedro Pathing 3.0 constants. The values below are placeholders: run the AutoTune procedures in
- * Tuning.java (see https://pedropathing.com/docs/pathing/tuning) and paste the generated configs here.
- * AutoTune is currently disabled and parked in TeamCode/disabled-autotune/ (see TeamCode/build.gradle).
+ * {@link Tuning} (see https://pedropathing.com/docs/pathing/tuning) and paste the generated configs here.
  * If you use a different drivetrain or localizer, swap the config classes and {@link #createFollower} to match.
  */
 public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
-        c.frontLeftName.set("lf");
-        c.backLeftName.set("lr");
-        c.frontRightName.set("rf");
-        c.backRightName.set("rr");
+        // Must match the Driver Station configuration exactly (case-sensitive)
+        c.frontLeftName.set("LF");
+        c.backLeftName.set("LB");
+        c.frontRightName.set("RF");
+        c.backRightName.set("RB");
 
         c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);

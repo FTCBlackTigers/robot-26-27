@@ -1,4 +1,22 @@
+// Sloth Load plugin (fast deploys). See https://github.com/Dairy-Foundation/Sloth
+// Keep this version in sync with the Sloth, Slothboard and Panels versions below.
+// If the Control Hub ever sticks on solid blue after an install, suspect Sloth first: it was removed once
+// for that reason (commit 3680d6d) and the hub recovered without it.
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.3.2"
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 //
 // build.gradle in TeamCode
@@ -29,7 +47,7 @@ repositories {
         url = 'https://mymaven.bylazar.com/releases'
     }
 
-    // Hosts SolversLib and Pedro Pathing (not only Sloth), so keep it
+    // Hosts Sloth, SolversLib and Pedro Pathing
     maven {
         url = "https://repo.dairy.foundation/releases"
     }
@@ -49,17 +67,17 @@ dependencies {
     implementation "org.solverslib:pedroPathing:0.3.6" // pedroPathing
     implementation "org.solverslib:photon:0.3.6" // photon is optional (see docs for more info)
 
+    // Sloth: hot reload of TeamCode. Deploy with the `deploySloth` Gradle task (see TeamCode readme).
+    implementation "dev.frozenmilk.sinister:Sloth:0.3.2"
+
+    // FTC Dashboard, Sloth fork (the normal com.acmerobotics.dashboard build breaks Sloth hot reload,
+    // and its maven.brott.dev repo can't be downloaded from anyway)
+    implementation "com.acmerobotics.slothboard:dashboard:0.3.2+0.6.0"
+
     // Pedro Pathing
     implementation 'com.pedropathing:revhub:3.0.0'
+    implementation 'com.pedropathing:tuning:1.0.0' // AutoTune (see Tuning.java), needs Sloth
 
-    // Sloth is removed for now (suspected of stopping the Robot Controller app from starting). Pedro's
-    // AutoTune (com.pedropathing:tuning) depends on Sloth, so it is removed too. Its OpMode files are
-    // parked in TeamCode/disabled-autotune/. To bring it back, move them into teamcode/pedroPathing/ and add:
-    // implementation 'com.pedropathing:tuning:1.0.0'
-
-    // FTC Dashboard is removed: maven.brott.dev rejects the TLS handshake, so it can't be downloaded,
-    // and nothing in TeamCode uses it
-
-    // Panels Dashboard
-    implementation "com.bylazar:fullpanels:1.0.12"
+    // Panels Dashboard, Sloth fork (the normal com.bylazar build breaks Sloth hot reload)
+    implementation "com.bylazar.sloth:fullpanels:0.3.2+1.0.13"
 }
