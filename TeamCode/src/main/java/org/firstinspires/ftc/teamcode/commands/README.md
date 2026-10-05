@@ -8,24 +8,17 @@ Source: SolversLib docs, https://docs.seattlesolvers.com/command-base/command-sy
 
 ## Layout
 
-One folder per subsystem for small single-subsystem commands, plus `automations/` for sequences
-that combine them (same layout as robot-25-26). One class per action, named by what it does.
+One folder per subsystem (`drive/`, `intake/`, ...), plus `automations/` for sequences that use
+several subsystems (same layout as robot-25-26). Right now there's only:
 
-| Command | Requires | What it does | Ends when |
-|---|---|---|---|
-| `drive/DriveWithController` | drivetrain | Field-centric driving from a gamepad (TeleOp default command) | interrupted |
-| `drive/ResetHeading` | nothing | Current facing becomes "forward" | right away |
-| `drive/AimAtTarget` | drivetrain | SHELL: turn toward the Limelight target (not bound yet, vision is off) | right away, until it's written |
-| `intake/IntakeIn` | intake | Runs the intake inwards, stops it at the end | a piece is detected, or interrupted |
-| `intake/IntakeOut` | intake | Runs the intake outwards, stops it at the end | interrupted |
-| `shooter/SpinUp` | shooter | Starts the flywheel | flywheel is at speed |
-| `shooter/Feed` | shooter | Pushes a piece in, waits, retracts | after `FEED_TIME_MS` |
-| `shooter/StopShooter` | shooter | Stops flywheel, retracts feeder | right away |
-| `automations/Shoot` | shooter | `SpinUp` (with timeout) → `Feed` | sequence done |
+- `drive/DriveWithController`: driving from the gamepad (TeleOp default command)
+- `intake/IntakeIn`: the example to copy when writing a new command
+- `drive/AimAtTarget`: vision shell, not used yet
 
-Intake and shooter are still placeholders (see `subsystems/`), so these commands run their logic
-but nothing moves. `hasGamePiece()` and `isReady()` are always false for now, so
-`IntakeIn` only ends on release and `Shoot` relies on its spin-up timeout.
+**When to write a class vs. a one-liner:** if the action just calls one method, write it inline in
+`Robot.java`, e.g. `new InstantCommand(shooter::stop, shooter)` or
+`new StartEndCommand(intake::outtake, intake::stop, intake)`. Make a class when the command has
+its own logic: an end condition (`isFinished`), cleanup (`end`), or several steps.
 
 ## The command lifecycle
 
@@ -102,8 +95,7 @@ subsystem when they run in parallel.
 | `.beforeStarting(runnable)` / `.whenFinished(runnable)` | small extra actions |
 | `.perpetually()` | never ends by itself |
 
-Example: `new SpinUp(shooter).withTimeout(1500).andThen(new Feed(shooter))` (that's what
-`automations/Shoot` is).
+Example: `new InstantCommand(shooter::spinUp, shooter).andThen(new WaitCommand(1000), new IntakeIn(intake).withTimeout(500))`
 
 ## Binding to buttons (TeleOp)
 
@@ -113,8 +105,8 @@ All bindings live in `Robot.configureTeleOp`:
 GamepadEx operator = new GamepadEx(gamepad2);
 operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
         .whenHeld(new IntakeIn(intake));   // starts on press, cancelled on release
-operator.getGamepadButton(GamepadKeys.Button.X)
-        .whenPressed(new Shoot(shooter));  // starts on press, runs to the end
+operator.getGamepadButton(GamepadKeys.Button.A)
+        .whenPressed(new InstantCommand(shooter::spinUp, shooter)); // starts on press, ends right away
 ```
 
 | Binding | Behavior |
@@ -140,7 +132,7 @@ protected Command routine(Robot robot) {
     Follower follower = robot.drivetrain.getFollower();
     return new SequentialCommandGroup(
             new FollowPathCommand(follower, toScore),
-            new Shoot(robot.shooter),
+            new InstantCommand(robot.shooter::spinUp, robot.shooter),
             new FollowPathCommand(follower, toPickup).alongWith(new IntakeIn(robot.intake).withTimeout(2000))
     );
 }

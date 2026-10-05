@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Robot;
  *         Path toScore = line(startPose(), scorePose).linear(startPose(), scorePose);
  *         return new SequentialCommandGroup(
  *                 new FollowPathCommand(robot.drivetrain.getFollower(), toScore),
- *                 new Shoot(robot.shooter)
+ *                 new InstantCommand(robot.shooter::spinUp, robot.shooter)
  *         );
  *     }
  * }

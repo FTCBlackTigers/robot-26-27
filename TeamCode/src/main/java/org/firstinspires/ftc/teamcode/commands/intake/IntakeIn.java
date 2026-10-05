@@ -5,29 +5,24 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 /**
- * Runs the intake inwards until a game piece is inside, or until interrupted (e.g. the button
- * bound with {@code whenHeld} is released). Always stops the intake at the end.
- * <p>
- * Intake is still a placeholder, so for now this never detects a piece and nothing spins.
+ * Runs the intake while the button is held (bound with whenHeld in Robot.java).
+ * Copy this file as a template for new commands.
  */
 public class IntakeIn extends CommandBase {
     private final Intake intake;
 
     public IntakeIn(Intake intake) {
         this.intake = intake;
-        addRequirements(intake);
+        addRequirements(intake); // only one command can use the intake at a time
     }
 
+    // Runs once when the command starts
     @Override
     public void initialize() {
         intake.intake();
     }
 
-    @Override
-    public boolean isFinished() {
-        return intake.hasGamePiece();
-    }
-
+    // Runs once when the command ends or is interrupted (button released)
     @Override
     public void end(boolean interrupted) {
         intake.stop();
