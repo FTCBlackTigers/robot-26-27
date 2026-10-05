@@ -8,7 +8,6 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.commands.automations.Shoot;
-import org.firstinspires.ftc.teamcode.commands.drive.AimAtTarget;
 import org.firstinspires.ftc.teamcode.commands.drive.DriveWithController;
 import org.firstinspires.ftc.teamcode.commands.drive.ResetHeading;
 import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
@@ -17,7 +16,6 @@ import org.firstinspires.ftc.teamcode.commands.shooter.SpinUp;
 import org.firstinspires.ftc.teamcode.commands.shooter.StopShooter;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 /**
@@ -31,7 +29,9 @@ public class Robot {
     public final Drivetrain drivetrain;
     public final Intake intake;
     public final Shooter shooter;
-    public final Limelight limelight;
+    // Vision is off for now. To turn it on: uncomment the Limelight lines here and the AimAtTarget
+    // binding below, add `limelight` to registerSubsystem, and remove @Disabled from LimelightTest.
+    // public final Limelight limelight;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
         // The scheduler is a singleton that outlives OpModes: clear anything a previous OpMode left
@@ -41,17 +41,16 @@ public class Robot {
         drivetrain = new Drivetrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
-        limelight = new Limelight(hardwareMap, telemetry);
+        // limelight = new Limelight(hardwareMap, telemetry);
 
         // Registered subsystems get periodic() called every loop
-        CommandScheduler.getInstance().registerSubsystem(drivetrain, intake, shooter, limelight);
+        CommandScheduler.getInstance().registerSubsystem(drivetrain, intake, shooter);
     }
 
     /**
      * TeleOp controls.
      * <p>
-     * gamepad1 (driver): sticks = field-centric drive, OPTIONS = reset heading,
-     * RB hold = aim at Limelight target (shell, does nothing yet).
+     * gamepad1 (driver): sticks = field-centric drive, OPTIONS = reset heading.
      * <br>
      * gamepad2 (operator): RB hold = intake, LB hold = outtake, A = spin up shooter, B = stop shooter,
      * X = shoot one piece.
@@ -65,8 +64,8 @@ public class Robot {
 
         driver.getGamepadButton(GamepadKeys.Button.OPTIONS)
                 .whenPressed(new ResetHeading(drivetrain));
-        driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whenHeld(new AimAtTarget(drivetrain, limelight));
+        // driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+        //         .whenHeld(new AimAtTarget(drivetrain, limelight));
 
         // ------------ Operator: intake ------------
         // whenHeld = start on press, cancel on release

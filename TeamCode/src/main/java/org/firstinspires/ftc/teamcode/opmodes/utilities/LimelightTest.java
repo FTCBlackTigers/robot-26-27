@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.utilities;
 
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,7 +12,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Limelight;
  * Checks the Limelight 3A: shows connection, pipeline, target angles, AprilTag IDs and botpose.
  * gamepad1 dpad up/down = next/previous pipeline (0-9).
  * Needs the Limelight in the Driver Station configuration, named "limelight".
+ * Hidden for now (vision isn't used yet): remove @Disabled to show it on the Driver Station.
  */
+@Disabled
 @TeleOp(name = "Limelight Test", group = "Utilities")
 public class LimelightTest extends LinearOpMode {
     @Override

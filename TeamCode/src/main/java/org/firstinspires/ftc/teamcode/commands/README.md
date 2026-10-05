@@ -15,7 +15,7 @@ that combine them (same layout as robot-25-26). One class per action, named by w
 |---|---|---|---|
 | `drive/DriveWithController` | drivetrain | Field-centric driving from a gamepad (TeleOp default command) | interrupted |
 | `drive/ResetHeading` | nothing | Current facing becomes "forward" | right away |
-| `drive/AimAtTarget` | drivetrain | SHELL: turn toward the Limelight target | right away, until it's written |
+| `drive/AimAtTarget` | drivetrain | SHELL: turn toward the Limelight target (not bound yet, vision is off) | right away, until it's written |
 | `intake/IntakeIn` | intake | Runs the intake inwards, stops it at the end | a piece is detected, or interrupted |
 | `intake/IntakeOut` | intake | Runs the intake outwards, stops it at the end | interrupted |
 | `shooter/SpinUp` | shooter | Starts the flywheel | flywheel is at speed |
