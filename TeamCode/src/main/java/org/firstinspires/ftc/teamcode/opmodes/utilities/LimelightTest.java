@@ -41,6 +41,7 @@ public class LimelightTest extends LinearOpMode {
 
             telemetry.addData("Pipeline (requested / running)", "%d / %d", pipeline, limelight.getPipelineIndex());
             telemetry.addData("tx / ty / ta", "%.2f / %.2f / %.2f", limelight.getTx(), limelight.getTy(), limelight.getTa());
+            telemetry.addData("Aim tx (middle of all tags)", "%.2f", limelight.getAimTx());
 
             for (LLResultTypes.FiducialResult tag : limelight.getAprilTags()) {
                 telemetry.addData("AprilTag " + tag.getFiducialId(), "x %.1f°, y %.1f°",

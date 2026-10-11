@@ -9,8 +9,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import java.util.function.DoubleConsumer;
 
 /**
- * Turns toward the Limelight target until it's centered (tx = 0), and keeps it centered while the
- * button is held. With no target in view it stops and waits.
+ * Turns toward the Limelight target until it's centered, and keeps it centered while the button is
+ * held. With no target in view it stops and waits. Aims at the middle of all visible AprilTags
+ * ({@link Limelight#getAimTx()}), so a pair of tags on a hive face counts as one target.
  * <p>
  * Right now the whole robot turns. Later a turret can use the exact same aiming math: give it the
  * turret instead of the drivetrain, e.g. {@code new AimAtTarget(limelight, turret::setPower, turret)}.
@@ -18,7 +19,7 @@ import java.util.function.DoubleConsumer;
  * <p>
  * Tuning (on the robot, with Limelight Test open to see tx):
  * <ul>
- *     <li>Turns the wrong way and spins away: tx sign is flipped, change {@code -tx} to {@code tx}.</li>
+ *     <li>Turns the wrong way and spins away: the sign is flipped, change {@code -tx} to {@code tx}.</li>
  *     <li>Too slow / stops short of center: raise {@link #MIN_POWER}, then {@link #KP}.</li>
  *     <li>Overshoots and wiggles around the target: lower {@link #KP}.</li>
  * </ul>
@@ -53,7 +54,8 @@ public class AimAtTarget extends CommandBase {
         }
 
         // tx is + when the target is to the right, and turning right is clockwise (negative)
-        double power = -limelight.getTx() * KP;
+        double tx = limelight.getAimTx();
+        double power = -tx * KP;
         // A minimum power so small errors still move it, a cap so it never whips around
         double magnitude = Math.min(MAX_POWER, Math.max(MIN_POWER, Math.abs(power)));
         turn.accept(Math.copySign(magnitude, power));
@@ -61,7 +63,7 @@ public class AimAtTarget extends CommandBase {
 
     /** True when the target is in view and centered within {@link #TOLERANCE_DEG}. */
     public boolean isAimed() {
-        return limelight.hasTarget() && Math.abs(limelight.getTx()) < TOLERANCE_DEG;
+        return limelight.hasTarget() && Math.abs(limelight.getAimTx()) < TOLERANCE_DEG;
     }
 
     // Never finishes by itself, so holding the button keeps the target centered.

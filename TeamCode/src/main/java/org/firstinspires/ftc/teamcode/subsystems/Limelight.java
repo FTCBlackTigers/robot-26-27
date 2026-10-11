@@ -73,6 +73,23 @@ public class Limelight extends SubsystemBase {
         return hasTarget() ? latest.getFiducialResults() : Collections.<LLResultTypes.FiducialResult>emptyList();
     }
 
+    /**
+     * Horizontal angle in degrees to the middle of all visible AprilTags (0 when there is no target).
+     * The hive faces have two tags side by side, so this aims between them instead of at whichever
+     * one looks bigger. Which tags count is set by the pipeline's ID Filters in the Limelight web UI.
+     * Falls back to {@link #getTx()} for non-AprilTag pipelines.
+     */
+    public double getAimTx() {
+        List<LLResultTypes.FiducialResult> tags = getAprilTags();
+        if (tags.isEmpty()) return getTx();
+
+        double sum = 0;
+        for (LLResultTypes.FiducialResult tag : tags) {
+            sum += tag.getTargetXDegrees();
+        }
+        return sum / tags.size();
+    }
+
     /** ID of the first AprilTag seen, or -1 when none. */
     public int getAprilTagId() {
         List<LLResultTypes.FiducialResult> tags = getAprilTags();
