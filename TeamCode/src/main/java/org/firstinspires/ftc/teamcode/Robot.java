@@ -41,7 +41,7 @@ public class Robot {
     }
 
     /**
-     * gamepad1 (driver): sticks = drive, OPTIONS = reset heading, RB hold = aim at target (shell, does nothing yet).
+     * gamepad1 (driver): sticks = drive, OPTIONS = reset heading, RB hold = turn to face the Limelight target.
      * gamepad2 (operator): RB hold = intake, LB hold = outtake, A = shooter on, B = shooter off.
      */
     public void configureTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
