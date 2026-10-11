@@ -9,10 +9,12 @@ import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.commands.drive.AimAtTarget;
 import org.firstinspires.ftc.teamcode.commands.drive.DriveWithController;
 import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 /**
@@ -23,9 +25,7 @@ public class Robot {
     public final Drivetrain drivetrain;
     public final Intake intake;
     public final Shooter shooter;
-    // Vision is off for now. To turn it on: uncomment the Limelight lines here and the AimAtTarget
-    // binding below, add `limelight` to registerSubsystem, and remove @Disabled from LimelightTest.
-    // public final Limelight limelight;
+    public final Limelight limelight; // safe without a camera: just reports "not connected"
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
         // Clear anything a previous OpMode left in the scheduler
@@ -34,14 +34,14 @@ public class Robot {
         drivetrain = new Drivetrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
-        // limelight = new Limelight(hardwareMap, telemetry);
+        limelight = new Limelight(hardwareMap, telemetry);
 
         // Registered subsystems get periodic() called every loop
-        CommandScheduler.getInstance().registerSubsystem(drivetrain, intake, shooter);
+        CommandScheduler.getInstance().registerSubsystem(drivetrain, intake, shooter, limelight);
     }
 
     /**
-     * gamepad1 (driver): sticks = drive, OPTIONS = reset heading.
+     * gamepad1 (driver): sticks = drive, OPTIONS = reset heading, RB hold = aim at target (shell, does nothing yet).
      * gamepad2 (operator): RB hold = intake, LB hold = outtake, A = shooter on, B = shooter off.
      */
     public void configureTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -52,8 +52,8 @@ public class Robot {
         drivetrain.setDefaultCommand(new DriveWithController(drivetrain, driver));
         driver.getGamepadButton(GamepadKeys.Button.OPTIONS)
                 .whenPressed(new InstantCommand(drivetrain::resetHeading));
-        // driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-        //         .whenHeld(new AimAtTarget(drivetrain, limelight));
+        driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+                .whenHeld(new AimAtTarget(drivetrain, limelight));
 
         // Operator
         operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)

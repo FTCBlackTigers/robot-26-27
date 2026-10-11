@@ -3,7 +3,7 @@
 | Folder | What lives there |
 |---|---|
 | `Robot.java` | Creates every subsystem once and holds all TeleOp button bindings. Every OpMode builds one. |
-| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` and `Shooter` are placeholders: hardware lines are commented out until the robot is built. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) works but is not used yet (see `Robot.java`). |
+| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` and `Shooter` are placeholders: hardware lines are commented out until the robot is built. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) is live and shows its status on telemetry. |
 | `commands/` | One folder per subsystem (+ `automations/` for multi-subsystem sequences, when needed). Mostly empty on purpose; has its own README explaining the SolversLib command system. |
 | `opmodes/` | `MainTeleOp` (a few lines, everything is in `Robot`) and `AutonomousBase` (extend it for each auto). |
 | `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera, hidden with `@Disabled` until vision is turned on). |
