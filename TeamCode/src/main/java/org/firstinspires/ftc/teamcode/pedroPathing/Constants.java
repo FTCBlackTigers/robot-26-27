@@ -35,7 +35,7 @@ public class Constants {
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
 
         c.powerThreshold.set(0.01);
-        c.manualBrakeMode.set(false);
+        c.manualBrakeMode.set(true); // TeleOp: BRAKE when the sticks are released (paths always FLOAT, Pedro holds the end pose itself)
     });
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
