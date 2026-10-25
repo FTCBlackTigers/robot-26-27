@@ -2,27 +2,27 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.Command;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
-import com.seattlesolvers.solverslib.util.TelemetryData;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
 
 /**
- * Pedro Pathing 3 paste-and-run auto. Paste the PoseFactory / Pose / Path code (e.g. from the path
- * visualizer) into the PASTE ZONE, list the paths in {@link #route()}, done.
- * The robot's start pose is the start of the first path in {@link #route()}.
+ * Pedro Pathing 3 paste-and-run auto.
+ * 1. Paste the PoseFactory / Pose / Path code (e.g. from the path visualizer) into the PASTE ZONE.
+ * 2. Write the auto in {@link #routine}: drive(path) and robot commands, top to bottom, in order.
+ * 3. Point {@link #startPose()} at the first path.
  */
 @Autonomous(name = "test", group = "tets")
-public class PedroCommands extends CommandOpMode {
-    private Follower follower;
-    private final TelemetryData telemetryData = new TelemetryData(telemetry);
+public class PedroCommands extends AutonomousBase {
 
     // ===================== PASTE ZONE: replace everything down to END PASTE ZONE =====================
 
@@ -42,40 +42,32 @@ public class PedroCommands extends CommandOpMode {
 
     // ===================== END PASTE ZONE =====================
 
-    /** The paths to drive, in order. Put the path methods from the paste zone here. */
-    private Path[] route() {
-        return new Path[] {
-                firstPath(),
-                secondPath(),
-        };
+    /** Where the robot starts: the start of your first path. */
+    @Override
+    protected Pose startPose() {
+        return firstPath().get(0);
     }
 
+    /** The auto, top to bottom. Each line waits for the one before it to finish. */
     @Override
-    public void initialize() {
-        super.reset();
+    protected Command routine(Robot robot) {
+        return new SequentialCommandGroup(
+                drive(firstPath()),
 
-        follower = Constants.createFollower(hardwareMap);
+                // Intake for 1 second while standing still (IntakeIn never stops by itself, so give it a timeout)
+                new IntakeIn(robot.intake).withTimeout(1000),
 
-        Path[] route = route();
-        follower.setPose(route[0].get(0)); // start of the first path
+                // Intake WHILE driving: the intake stops when the path ends
+                drive(secondPath()).deadlineWith(new IntakeIn(robot.intake)),
 
-        SequentialCommandGroup auto = new SequentialCommandGroup();
-        for (Path path : route) {
-            auto.addCommands(new FollowPathCommand(follower, path));
-        }
-        schedule(auto);
+                // One-shot actions
+                new InstantCommand(robot.shooter::spinUp, robot.shooter),
+                new WaitCommand(500)
+        );
     }
 
-    @Override
-    public void run() {
-        super.run();
-
-        // The follower needs to be updated every loop
-        follower.update();
-
-        telemetryData.addData("X", follower.pose().x());
-        telemetryData.addData("Y", follower.pose().y());
-        telemetryData.addData("Heading", follower.pose().heading());
-        telemetryData.update();
+    /** Follow a path (Drivetrain updates the follower every loop). */
+    private Command drive(Path path) {
+        return new FollowPathCommand(robot.drivetrain.getFollower(), path);
     }
 }
