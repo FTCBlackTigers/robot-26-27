@@ -13,6 +13,7 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.commands.drive.RelocalizeFromCamera;
 import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
 
 /**
@@ -53,6 +54,9 @@ public class PedroCommands extends AutonomousBase {
     protected Command routine(Robot robot) {
         return new SequentialCommandGroup(
                 drive(firstPath()),
+
+                // Fix x, y from the AprilTags while stopped. Turn on after the Limelight Test position check
+                // new RelocalizeFromCamera(robot.drivetrain, robot.limelight),
 
                 // Intake for 1 second while standing still (IntakeIn never stops by itself, so give it a timeout)
                 new IntakeIn(robot.intake).withTimeout(1000),

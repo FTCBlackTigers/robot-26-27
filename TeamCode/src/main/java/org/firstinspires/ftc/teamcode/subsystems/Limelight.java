@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -7,7 +8,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +37,13 @@ public class Limelight extends SubsystemBase {
      * AimAtTarget would keep turning. A healthy Limelight is ~10-30 ms old.
      */
     public static long MAX_RESULT_AGE_MS = 100;
+    /**
+     * How many degrees Pedro's field axes are turned from the Limelight's (counterclockwise). The
+     * Limelight's field map has (0, 0) in the middle of the field, Pedro has it in a corner (0-144 in),
+     * and the axes may point different ways. 90 is Pedro's own FTC conversion. Check it once on the
+     * field: Limelight Test shows the right value when the robot faces Pedro's 0°.
+     */
+    public static double FIELD_ROTATION_DEG = 90;
 
     private final Limelight3A limelight; // null when not configured
     private final Telemetry telemetry;
@@ -109,13 +120,32 @@ public class Limelight extends SubsystemBase {
     }
 
     /**
-     * Robot pose on the field from AprilTags (MegaTag1), or null with no target. Position is in
-     * meters: use {@code getPosition().toUnit(DistanceUnit.INCH)} for Pedro's inches.
-     * Needs the field map + camera position set in the Limelight web UI. For MegaTag2 call
-     * {@link #updateRobotYaw} every loop and use {@code getBotpose_MT2()} instead.
+     * Raw robot pose from AprilTags (MegaTag1) in the Limelight's field coordinates (meters, (0, 0) in
+     * the middle of the field), or null with no target. Autos want {@link #getPedroPose()} instead.
      */
     public Pose3D getBotpose() {
         return hasTarget() ? latest.getBotpose() : null;
+    }
+
+    /**
+     * Where the robot is in Pedro coordinates (inches, heading in radians), from the AprilTags
+     * (MegaTag1), or null when no tag from the field map is in view.
+     * Needs the season's field map and the camera's position on the robot set in the Limelight web
+     * UI (Robot space settings), so the pose is the robot's center, not the camera's.
+     * The camera's heading is much rougher than the Pinpoint's: RelocalizeFromCamera only uses x and y.
+     */
+    public Pose getPedroPose() {
+        if (!hasTarget() || latest.getBotposeTagCount() == 0) return null;
+
+        Pose3D botpose = latest.getBotpose();
+        Position position = botpose.getPosition().toUnit(DistanceUnit.INCH);
+        double rotation = Math.toRadians(FIELD_ROTATION_DEG);
+        double cos = Math.cos(rotation), sin = Math.sin(rotation);
+        // Turn the axes, then move (0, 0) from the middle of the field to Pedro's corner
+        return new Pose(
+                position.x * cos - position.y * sin + 72,
+                position.x * sin + position.y * cos + 72,
+                botpose.getOrientation().getYaw(AngleUnit.RADIANS) + rotation);
     }
 
     /** Feeds the robot heading (degrees) to the Limelight for MegaTag2 localization. */
