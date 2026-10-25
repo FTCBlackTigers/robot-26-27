@@ -27,10 +27,17 @@ import java.util.List;
 public class Limelight extends SubsystemBase {
     public static final String DEVICE_NAME = "limelight";
     public static int DEFAULT_PIPELINE = 0;
+    /**
+     * Results older than this (ms) don't count. The SDK keeps handing back the last result forever, so
+     * without this a frozen or unplugged camera would look like a target that never moves, and
+     * AimAtTarget would keep turning. A healthy Limelight is ~10-30 ms old.
+     */
+    public static long MAX_RESULT_AGE_MS = 100;
 
     private final Limelight3A limelight; // null when not configured
     private final Telemetry telemetry;
     private LLResult latest;
+    private boolean hasTarget; // decided once per loop in periodic(), so every getter agrees
 
     public Limelight(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
@@ -48,9 +55,14 @@ public class Limelight extends SubsystemBase {
         return limelight != null && limelight.isConnected();
     }
 
-    /** True when the current pipeline sees a target. */
+    /** True when the current pipeline sees a target and the result is fresh. */
     public boolean hasTarget() {
-        return latest != null && latest.isValid();
+        return hasTarget;
+    }
+
+    /** How old the latest result is in ms (-1 before the first one). */
+    public long getResultAgeMs() {
+        return latest != null ? latest.getStaleness() : -1;
     }
 
     /** Horizontal angle to the target in degrees (0 when there is no target). */
@@ -126,6 +138,7 @@ public class Limelight extends SubsystemBase {
     @Override
     public void periodic() {
         if (limelight != null) latest = limelight.getLatestResult();
+        hasTarget = latest != null && latest.isValid() && latest.getStaleness() <= MAX_RESULT_AGE_MS;
 
         if (!isConnected()) {
             telemetry.addData("Limelight", "not connected");

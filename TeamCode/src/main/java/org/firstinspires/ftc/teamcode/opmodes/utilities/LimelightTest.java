@@ -40,6 +40,7 @@ public class LimelightTest extends LinearOpMode {
             lastDown = gamepad1.dpad_down;
 
             telemetry.addData("Pipeline (requested / running)", "%d / %d", pipeline, limelight.getPipelineIndex());
+            telemetry.addData("Result age", "%d ms (over %d = ignored)", limelight.getResultAgeMs(), Limelight.MAX_RESULT_AGE_MS);
             telemetry.addData("tx / ty / ta", "%.2f / %.2f / %.2f", limelight.getTx(), limelight.getTy(), limelight.getTa());
             telemetry.addData("Aim tx (middle of all tags)", "%.2f", limelight.getAimTx());
 
