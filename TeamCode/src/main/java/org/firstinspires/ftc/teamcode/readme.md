@@ -7,7 +7,7 @@
 | `commands/` | One folder per subsystem (+ `automations/` for multi-subsystem sequences, when needed). Mostly empty on purpose; has its own README explaining the SolversLib command system. |
 | `opmodes/` | `MainTeleOp` (a few lines, everything is in `Robot`) and `AutonomousBase` (extend it for each auto). |
 | `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera, hidden with `@Disabled` until vision is turned on). |
-| `pedroPathing/` | Pedro Pathing 3 config (`Constants`) and the AutoTune procedures (`Tuning`). |
+| `pedroPathing/` | Pedro Pathing 3 config (`Constants`) (AutoTune sources are parked in `TeamCode/disabled-autotune/`). |
 | `samples/` | Reference Pedro + SolversLib OpModes. Copy from them, don't build on them. |
 
 To bring a placeholder subsystem to life: uncomment its hardware fields, constructor lines and
@@ -18,24 +18,19 @@ method bodies, fix the imports, and make the device names match the Driver Stati
 Drive: `LF`, `LB`, `RF`, `RB`. Others: `INTAKE`, `SHOOTER` (used by `MotorTest`), `pinpoint`
 (odometry), `limelight` (camera). Names are case-sensitive.
 
-### Fast deploys (Sloth)
+### Installing on the robot
 
-Sloth hot reloads TeamCode in about a second instead of a full ~40 s install.
+Use Android Studio's **TeamCode** Run configuration for a full APK install. Sloth hot reload
+is removed because it was previously associated with the controller failing to start.
+Remove any old `removeSlothRemote` before-launch task from your local Run configuration.
 
-1. Do one normal install first (green Run arrow, `TeamCode`), and again any time you change
-   libraries/Gradle files or anything outside `org.firstinspires.ftc.teamcode`.
-2. After that, pick the shared **deploySloth** run configuration and run it. Changes apply when
-   the current OpMode ends.
-3. One-time per computer: Run > Edit Configurations > `TeamCode` > Before launch > + >
-   Run Gradle task, Gradle project `:TeamCode`, task `removeSlothRemote`, and move it to the top.
-   This stops old Sloth code from overriding a fresh full install.
+Pedro Pathing remains enabled. Pedro AutoTune 1.0.0 pulls Sloth into the runtime, so its
+sources are preserved in `TeamCode/disabled-autotune/`, outside the compiled source tree.
+Panels uses the standard artifact; the Sloth dashboard forks are removed.
 
-If the Control Hub sticks on solid blue after an install, suspect Sloth first: it was removed once
-for exactly that (commit `3680d6d`) and the hub recovered. Clear its cache with
-`adb shell rm -rf /storage/emulated/0/FIRST/dairy/sloth/*` and/or revert to that commit.
-
-Dashboards: FTC Dashboard and Panels are the Sloth-compatible forks
-(`com.acmerobotics.slothboard`, `com.bylazar.sloth`). Do not add the normal artifacts back.
+After installation, confirm the Driver Station connects and the controller reaches RUNNING.
+Then verify OpMode INIT separately with the matching hardware configuration. A successful
+APK build alone does not prove startup on the physical hub.
 
 ---
 
