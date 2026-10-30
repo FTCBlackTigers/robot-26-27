@@ -30,7 +30,7 @@ public class Drivetrain extends SubsystemBase {
     private final Follower follower;
     private final Telemetry telemetry;
 
-    private double speedMultiplier = 1.0;
+    private double speedMultiplier = 0.7;
     private double distanceTraveled = 0;
     private Pose lastPose;
 
