@@ -6,6 +6,8 @@
   transitively includes Sloth; its sources are preserved in TeamCode/disabled-autotune/.
 - Keep Pedro revhub/path following enabled. Hardware initialization occurs at OpMode INIT.
 - Build success is not proof of hub startup; report physical startup verification separately.
+- Intake smoke test requires only `INTAKE`: gamepad1 RB/LB hold runs intake/outtake,
+  release stops. Main TeleOp uses the same commands on gamepad2 and also requires drive hardware.
 
 | Skill | Use |
 |---|---|

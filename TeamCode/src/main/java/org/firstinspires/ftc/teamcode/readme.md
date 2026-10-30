@@ -3,7 +3,7 @@
 | Folder | What lives there |
 |---|---|
 | `Robot.java` | Creates every subsystem once and holds all TeleOp button bindings. Every OpMode builds one. |
-| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` and `Shooter` are placeholders: hardware lines are commented out until the robot is built. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) is live and shows its status on telemetry. |
+| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` uses the `INTAKE` motor. `Shooter` remains a placeholder with hardware lines commented out. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) is live and shows its status on telemetry. |
 | `commands/` | One folder per subsystem (+ `automations/` for multi-subsystem sequences, when needed). Mostly empty on purpose; has its own README explaining the SolversLib command system. |
 | `opmodes/` | `MainTeleOp` (a few lines, everything is in `Robot`) and `AutonomousBase` (extend it for each auto). |
 | `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera, hidden with `@Disabled` until vision is turned on). |
@@ -19,6 +19,11 @@ Drive: `LF`, `LB`, `RF`, `RB`. Others: `INTAKE`, `SHOOTER` (used by `MotorTest`)
 (odometry), `limelight` (camera). Names are case-sensitive.
 
 ### Installing on the robot
+
+`Smoke: IntakeIn Command Test` needs only the `INTAKE` motor. On gamepad1, hold RB to
+intake or LB to outtake; release to stop. It stays stopped at START until a bumper is held.
+`Main TeleOp` uses these controls on gamepad2 and also requires the configured drive motors
+and Pinpoint. The shooter controls remain placeholders.
 
 Use Android Studio's **TeamCode** Run configuration for a full APK install. Sloth hot reload
 is removed because it was previously associated with the controller failing to start.
