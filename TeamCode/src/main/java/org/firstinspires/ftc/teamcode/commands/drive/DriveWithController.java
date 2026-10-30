@@ -23,7 +23,7 @@ public class DriveWithController extends CommandBase {
     public void execute() {
         // Pedro wants +forward, +left, +counterclockwise. GamepadEx.getLeftY() is already +up,
         // but getLeftX()/getRightX() are +right, so those two are negated.
-        drivetrain.driveFieldCentric(
+        drivetrain.driveRobotCentric(
                 -controller.getLeftY(),
                 controller.getLeftX(),
                 controller.getRightX()
