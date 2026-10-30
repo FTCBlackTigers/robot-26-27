@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.smokeTests.commandTests;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 
-@TeleOp(name = "Smoke: Robot Drive", group = "Smoke Tests")
-public class RobotDriveOpmode extends CommandOpMode {
+@TeleOp(name = "Smoke: IntakeIn Command Test", group = "Smoke Tests")
+public class IntakeInOpmode extends CommandOpMode {
     @Override
     public void initialize() {
-        RobotDriveTest robot = new RobotDriveTest(hardwareMap, telemetry);
+        IntakeInTest robot = new IntakeInTest(hardwareMap, telemetry);
         robot.configureTeleOp(gamepad1);
     }
 
