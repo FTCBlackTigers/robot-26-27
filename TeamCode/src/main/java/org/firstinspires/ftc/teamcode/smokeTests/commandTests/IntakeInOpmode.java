@@ -7,7 +7,7 @@ import com.seattlesolvers.solverslib.command.CommandOpMode;
 public class IntakeInOpmode extends CommandOpMode {
     @Override
     public void initialize() {
-        IntakeInTest robot = new IntakeInOpmode(hardwareMap, telemetry);
+        IntakeInTest robot = new IntakeInTest(hardwareMap, telemetry);
         robot.configureTeleOp(gamepad1);
     }
 
