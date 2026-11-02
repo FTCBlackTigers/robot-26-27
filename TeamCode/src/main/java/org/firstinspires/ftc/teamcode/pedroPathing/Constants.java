@@ -40,9 +40,12 @@ public class Constants {
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
-        c.xPodOffset.set(-5.0);
-        c.yPodOffset.set(0.5);
-        c.offsetUnits.set(DistanceUnit.INCH);
+        // Measured 2026-11-02 from the robot's center (goBILDA convention):
+        // xPodOffset = how far LEFT of center the forward-tracking (X) pod is (right = negative),
+        // yPodOffset = how far FORWARD of center the strafe-tracking (Y) pod is (back = negative).
+        c.xPodOffset.set(14.5);  // X pod on the left side
+        c.yPodOffset.set(-21.0); // Y pod at the back
+        c.offsetUnits.set(DistanceUnit.CM);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);

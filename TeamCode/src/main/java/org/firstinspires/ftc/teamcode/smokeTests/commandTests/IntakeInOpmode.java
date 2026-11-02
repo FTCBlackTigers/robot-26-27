@@ -13,8 +13,7 @@ public class IntakeInOpmode extends CommandOpMode {
 
     @Override
     public void run() {
-        // Runs the command scheduler, which calls every subsystem's periodic() (that's where
-        // telemetry lines are added and the Pedro follower is updated)
+        // Poll the bumper bindings and publish intake power telemetry.
         super.run();
         telemetry.update();
     }
