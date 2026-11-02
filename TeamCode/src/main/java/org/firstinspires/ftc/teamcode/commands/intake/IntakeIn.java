@@ -27,4 +27,5 @@ public class IntakeIn extends CommandBase {
     public void end(boolean interrupted) {
         intake.stop();
     }
+    
 }

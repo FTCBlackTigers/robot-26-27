@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
@@ -16,26 +18,33 @@ public class Shooter extends SubsystemBase {
 
     private final Telemetry telemetry;
 
-    // private final DcMotorEx flywheel;
+    private final DcMotorEx flywheel;
 
     public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        // flywheel = hardwareMap.get(DcMotorEx.class, "SHOOTER");
-        // flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheel = hardwareMap.get(DcMotorEx.class, "SHOOTER");
+        flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     public void spinUp() {
-        // flywheel.setVelocity(TARGET_VELOCITY);
+        flywheel.setVelocity(TARGET_VELOCITY);
+    }
+
+    public void spinUpFast() {
+        flywheel.setVelocity(TARGET_VELOCITY+500);
+    }
+    public void spinUpSlow() {
+        flywheel.setVelocity(TARGET_VELOCITY-400);
     }
 
     public void stop() {
-        // flywheel.setVelocity(0);
+        flywheel.setVelocity(0);
     }
 
     @Override
     public void periodic() {
-        // telemetry.addData("Shooter velocity", flywheel.getVelocity());
+        telemetry.addData("Shooter velocity", flywheel.getVelocity());
     }
 }

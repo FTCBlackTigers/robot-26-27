@@ -62,6 +62,8 @@ public class Robot {
                 .whenHeld(new IntakeOut(intake));
         operator.getGamepadButton(GamepadKeys.Button.A)
                 .whenPressed(new InstantCommand(shooter::spinUp, shooter));
+        operator.getGamepadButton(GamepadKeys.Button.X)
+                .whenPressed(new InstantCommand(shooter::spinUpFast, shooter));
         operator.getGamepadButton(GamepadKeys.Button.B)
                 .whenPressed(new InstantCommand(shooter::stop, shooter));
     }
