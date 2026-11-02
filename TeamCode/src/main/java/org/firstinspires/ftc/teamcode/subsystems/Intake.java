@@ -22,15 +22,15 @@ public class Intake extends SubsystemBase {
     }
 
     public void intake() {
-        // motor.setPower(1);
+        motor.setPower(0.5);
     }
 
     public void outtake() {
-        // motor.setPower(-1);
+        motor.setPower(-0.5);
     }
 
     public void stop() {
-        // motor.setPower(0);
+        motor.setPower(0);
     }
 
     @Override

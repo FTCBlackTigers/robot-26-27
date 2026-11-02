@@ -34,4 +34,8 @@ public class DriveWithController extends CommandBase {
     public void end(boolean interrupted) {
         drivetrain.stop();
     }
+    @Override
+    public boolean isFinished() {
+    return false;
+    }
 }

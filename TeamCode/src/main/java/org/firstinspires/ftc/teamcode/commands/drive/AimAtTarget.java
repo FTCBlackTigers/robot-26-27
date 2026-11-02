@@ -73,4 +73,8 @@ public class AimAtTarget extends CommandBase {
     public void end(boolean interrupted) {
         turn.accept(0);
     }
+    @Override
+    public boolean isFinished() {
+    return false;
+    }
 }
