@@ -52,10 +52,12 @@ dependencies {
     // Pedro Pathing
     implementation 'com.pedropathing:revhub:3.0.0'
 
-    // Sloth is excluded from robot builds (suspected of stopping the Robot Controller app from starting). Pedro's
-    // AutoTune (com.pedropathing:tuning) depends on Sloth, so it is removed too. Its OpMode files are
-    // parked in TeamCode/disabled-autotune/. To bring it back, move them into teamcode/pedroPathing/ and add:
-    // implementation 'com.pedropathing:tuning:1.0.0'
+    // Pedro AutoTune: web UI at http://192.168.43.1:10158 (sources in teamcode/pedroPathing/).
+    // It needs Sloth (dev.frozenmilk.sinister) at runtime to find @Tuner methods and start its server,
+    // so Sloth comes back with it. Sloth was earlier suspected (3680d6d) of stopping the Robot Controller
+    // app from starting; if that happens again after install, this line is the first thing to bisect.
+    // Only the Sloth library is used: no Sloth Load/fast-deploy plugin, no removeSlothRemote task.
+    implementation 'com.pedropathing:tuning:1.0.0'
 
     // FTC Dashboard is removed: maven.brott.dev rejects the TLS handshake, so it can't be downloaded,
     // and nothing in TeamCode uses it
