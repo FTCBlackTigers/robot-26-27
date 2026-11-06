@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.commands.drive.AimAtTarget;
 import org.firstinspires.ftc.teamcode.commands.drive.DriveWithController;
 import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
+import org.firstinspires.ftc.teamcode.commands.ShooterCommand;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Limelight;
@@ -61,8 +62,8 @@ public class Robot {
         operator.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
                 .whenHeld(new StartEndCommand(intake::outtake, intake::stop, intake));
         operator.getGamepadButton(GamepadKeys.Button.A)
-                .whenPressed(new InstantCommand(shooter::spinUp, shooter));
-        operator.getGamepadButton(GamepadKeys.Button.B)
-                .whenPressed(new InstantCommand(shooter::stop, shooter));
+                .whenPressed(new ShooterCommand(shooter));
+//        operator.getGamepadButton(GamepadKeys.Button.B)
+//                .whenPressed(new InstantCommand(shooter::stop, shooter));
     }
 }

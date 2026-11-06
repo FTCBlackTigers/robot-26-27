@@ -24,8 +24,5 @@ public class MainTeleOp extends CommandOpMode {
         super.run();
         telemetry.update();
     }
-    @Override
-public boolean isFinished() {
-    return false;
-}
+
 }
