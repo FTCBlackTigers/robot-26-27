@@ -3,11 +3,11 @@
 | Folder | What lives there |
 |---|---|
 | `Robot.java` | Creates every subsystem once and holds all TeleOp button bindings. Every OpMode builds one. |
-| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` and `Shooter` are placeholders: hardware lines are commented out until the robot is built. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) is live and shows its status on telemetry. |
+| `subsystems/` | One class per mechanism (SolversLib `SubsystemBase`), each adds its own telemetry. `Intake` uses the `INTAKE` motor. `Shooter` uses the `SHOOTER` motor and its encoder. `Drivetrain` (Pedro follower, shared by TeleOp and auto) is live. `Limelight` (Limelight 3A) is live and shows its status on telemetry. |
 | `commands/` | One folder per subsystem (+ `automations/` for multi-subsystem sequences, when needed). Mostly empty on purpose; has its own README explaining the SolversLib command system. |
 | `opmodes/` | `MainTeleOp` (a few lines, everything is in `Robot`) and `AutonomousBase` (extend it for each auto). |
 | `opmodes/utilities/` | Hardware checks: `MotorTest` (all 6 motors, no gamepad), `LimelightTest` (camera, hidden with `@Disabled` until vision is turned on). |
-| `pedroPathing/` | Pedro Pathing 3 config (`Constants`) (AutoTune sources are parked in `TeamCode/disabled-autotune/`). |
+| `pedroPathing/` | Pedro Pathing 3 config (`Constants`), AutoTune entry point (`Tuning`) and its `procedures/`. |
 | `samples/` | Reference Pedro + SolversLib OpModes. Copy from them, don't build on them. |
 
 To bring a placeholder subsystem to life: uncomment its hardware fields, constructor lines and
@@ -20,13 +20,19 @@ Drive: `LF`, `LB`, `RF`, `RB`. Others: `INTAKE`, `SHOOTER` (used by `MotorTest`)
 
 ### Installing on the robot
 
+`Smoke: IntakeIn Command Test` needs only the `INTAKE` motor. On gamepad1, hold RB to
+intake or LB to outtake; release to stop. It stays stopped at START until a bumper is held.
+`Main TeleOp` uses these controls on gamepad2 and also requires the configured drive motors
+and Pinpoint. Hold operator A to run the shooter.
+
 Use Android Studio's **TeamCode** Run configuration for a full APK install. Sloth hot reload
 is removed because it was previously associated with the controller failing to start.
 Remove any old `removeSlothRemote` before-launch task from your local Run configuration.
 
-Pedro Pathing remains enabled. Pedro AutoTune 1.0.0 pulls Sloth into the runtime, so its
-sources are preserved in `TeamCode/disabled-autotune/`, outside the compiled source tree.
-Panels uses the standard artifact; the Sloth dashboard forks are removed.
+Pedro Pathing and Pedro AutoTune are enabled. To tune: install, join the robot Wi-Fi, and open
+http://192.168.43.1:10158 (the RC app must be running). Paste the generated configs into
+`Constants`. AutoTune pulls the Sloth library into the runtime; only the Sloth hot-reload plugin
+and dashboard forks stay removed. Panels uses the standard artifact (http://192.168.43.1:8001).
 
 After installation, confirm the Driver Station connects and the controller reaches RUNNING.
 Then verify OpMode INIT separately with the matching hardware configuration. A successful

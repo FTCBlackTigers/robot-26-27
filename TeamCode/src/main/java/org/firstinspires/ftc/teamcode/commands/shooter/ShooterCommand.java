@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.commands.shooter;
 
 import com.seattlesolvers.solverslib.command.CommandBase;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
+/** Runs the shooter while the button is held (bind with whenHeld) and stops it on release. */
 public class ShooterCommand extends CommandBase {
     private final Shooter shooter;
 

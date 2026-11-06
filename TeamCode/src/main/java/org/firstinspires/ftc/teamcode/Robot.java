@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.StartEndCommand;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
@@ -12,7 +11,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.commands.drive.AimAtTarget;
 import org.firstinspires.ftc.teamcode.commands.drive.DriveWithController;
 import org.firstinspires.ftc.teamcode.commands.intake.IntakeIn;
-import org.firstinspires.ftc.teamcode.commands.ShooterCommand;
+import org.firstinspires.ftc.teamcode.commands.intake.IntakeOut;
+import org.firstinspires.ftc.teamcode.commands.shooter.ShooterCommand;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Limelight;
@@ -43,7 +43,7 @@ public class Robot {
 
     /**
      * gamepad1 (driver): sticks = drive, OPTIONS = reset heading, RB hold = turn to face the Limelight target.
-     * gamepad2 (operator): RB hold = intake, LB hold = outtake, A = shooter on, B = shooter off.
+     * gamepad2 (operator): RB hold = intake, LB hold = outtake, A hold = shooter.
      */
     public void configureTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
         GamepadEx driver = new GamepadEx(gamepad1);
@@ -60,10 +60,8 @@ public class Robot {
         operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .whenHeld(new IntakeIn(intake));
         operator.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
-                .whenHeld(new StartEndCommand(intake::outtake, intake::stop, intake));
+                .whenHeld(new IntakeOut(intake));
         operator.getGamepadButton(GamepadKeys.Button.A)
-                .whenPressed(new ShooterCommand(shooter));
-//        operator.getGamepadButton(GamepadKeys.Button.B)
-//                .whenPressed(new InstantCommand(shooter::stop, shooter));
+                .whenHeld(new ShooterCommand(shooter));
     }
 }

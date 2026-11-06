@@ -7,14 +7,13 @@ import com.seattlesolvers.solverslib.command.CommandOpMode;
 public class IntakeInOpmode extends CommandOpMode {
     @Override
     public void initialize() {
-        IntakeInTest robot = new IntakeInOpmode(hardwareMap, telemetry);
+        IntakeInTest robot = new IntakeInTest(hardwareMap, telemetry);
         robot.configureTeleOp(gamepad1);
     }
 
     @Override
     public void run() {
-        // Runs the command scheduler, which calls every subsystem's periodic() (that's where
-        // telemetry lines are added and the Pedro follower is updated)
+        // Poll the bumper bindings and publish intake power telemetry.
         super.run();
         telemetry.update();
     }
