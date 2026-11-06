@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
@@ -12,30 +14,30 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * setVelocity (encoder ticks per second) instead of setPower keeps shots the same as the battery drains.
  */
 public class Shooter extends SubsystemBase {
-    public static double TARGET_VELOCITY = 1500; // ticks per second, tune on the robot
+    public static double TARGET_VELOCITY = 2754; // ticks per second, tune on the robot
 
     private final Telemetry telemetry;
 
-    // private final DcMotorEx flywheel;
+     private final DcMotorEx flywheel;
 
     public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        // flywheel = hardwareMap.get(DcMotorEx.class, "SHOOTER");
-        // flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheel = hardwareMap.get(DcMotorEx.class, "SHOOTER");
+        flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     public void spinUp() {
-        // flywheel.setVelocity(TARGET_VELOCITY);
+        flywheel.setVelocity(TARGET_VELOCITY);
     }
 
     public void stop() {
-        // flywheel.setVelocity(0);
+        flywheel.setVelocity(0);
     }
 
     @Override
     public void periodic() {
-        // telemetry.addData("Shooter velocity", flywheel.getVelocity());
+        telemetry.addData("Shooter velocity", flywheel.getVelocity());
     }
 }
