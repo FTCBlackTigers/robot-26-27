@@ -122,6 +122,63 @@ public class ForesightTuner extends Procedure {
     }
 }
 
+/**
+ * Hard limits for the full-power Foresight steps. Upstream, these loops end only when the localizer
+ * reports the target distance or speed. They never check time, total travel, or Stop, so a bad Pinpoint
+ * reading (axes swapped, not updating, wrong pod type) sent the robot into the wall at full power.
+ * Every driving loop below must call {@link #check} and also stop on {@code isStopRequested()}.
+ */
+final class DriveGuard {
+    /** At full power, the robot must have moved at least this far by now, or the localizer is not tracking. */
+    static final double STALL_SECONDS = 0.75;
+    static final double STALL_INCHES = 2.0;
+
+    private final ElapsedTime timer = new ElapsedTime();
+    private final double maxInches;
+    private final double maxSeconds;
+    private final boolean checkStall;
+
+    DriveGuard(double maxInches, double maxSeconds, boolean checkStall) {
+        this.maxInches = maxInches;
+        this.maxSeconds = maxSeconds;
+        this.checkStall = checkStall;
+    }
+
+    void reset() {
+        timer.reset();
+    }
+
+    /** Brakes and aborts the tuner if the robot is past the time or distance limit (pose starts at zero). */
+    void check(Localizer localizer, Drivetrain drivetrain) {
+        double traveled = localizer.pose().toVector2D().magnitude();
+        double seconds = timer.seconds();
+        String problem = null;
+        if (checkStall && seconds > STALL_SECONDS && traveled < STALL_INCHES) {
+            problem = String.format(Locale.US, "localizer reports only %.1f in after %.1f s of driving. Is the Pinpoint connected, named 'pinpoint', and updating?", traveled, seconds);
+        } else if (traveled > maxInches) {
+            problem = String.format(Locale.US, "robot is %.1f in from the start, past the %.0f in limit", traveled, maxInches);
+        } else if (seconds > maxSeconds) {
+            problem = String.format(Locale.US, "drive phase timed out after %.1f s", maxSeconds);
+        }
+        if (problem != null) {
+            drivetrain.stop(true);
+            throw new IllegalStateException("Safety stop: " + problem);
+        }
+    }
+
+    /** Forward motion must show up mostly in x and strafe motion mostly in y, otherwise the pods are swapped. */
+    static void checkAxis(Localizer localizer, Drivetrain drivetrain, boolean forward) {
+        double along = Math.abs(forward ? localizer.pose().x() : localizer.pose().y());
+        double across = Math.abs(forward ? localizer.pose().y() : localizer.pose().x());
+        if (along + across > 12 && across > along) {
+            drivetrain.stop(true);
+            throw new IllegalStateException(String.format(Locale.US,
+                    "Safety stop: robot drove %s, but the localizer shows x=%.1f, y=%.1f. Check the Pinpoint X/Y pod ports and directions (run the localization test first).",
+                    forward ? "forward" : "left", localizer.pose().x(), localizer.pose().y()));
+        }
+    }
+}
+
 class ForwardVelocity extends TuningOpMode<Double> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
@@ -157,11 +214,16 @@ class ForwardVelocity extends TuningOpMode<Double> {
         localizer.setPose(Pose.zero());
         localizer.update();
 
-        while (!end) {
+        DriveGuard guard = new DriveGuard(distance + 6, 1.0 + distance / 20.0, true);
+        guard.reset();
+
+        while (!end && !isStopRequested()) {
             localizer.update();
+            DriveGuard.checkAxis(localizer, drivetrain, true);
+            guard.check(localizer, drivetrain);
             if (Math.abs(localizer.pose().x()) > distance) {
                 end = true;
-                drivetrain.stop();
+                drivetrain.stop(true);
             } else {
                 drivetrain.drive(power, true);
                 double currentVelocity = Math.abs(localizer.twist().toVector2D().x());
@@ -215,11 +277,16 @@ class StrafeVelocity extends TuningOpMode<Double> {
         localizer.setPose(Pose.zero());
         localizer.update();
 
-        while (!end) {
+        DriveGuard guard = new DriveGuard(distance + 6, 1.0 + distance / 15.0, true);
+        guard.reset();
+
+        while (!end && !isStopRequested()) {
             localizer.update();
+            DriveGuard.checkAxis(localizer, drivetrain, false);
+            guard.check(localizer, drivetrain);
             if (Math.abs(localizer.pose().y()) > distance) {
                 end = true;
-                drivetrain.stop();
+                drivetrain.stop(true);
             } else {
                 drivetrain.drive(power, false);
                 double currentVelocity = Math.abs(localizer.twist().toVector2D().y());
@@ -244,6 +311,8 @@ class ForwardDeceleration extends TuningOpMode<Double> {
     double velocity;
 
     private final ArrayList<Double> accelerations = new ArrayList<>();
+    /** If the target speed isn't reached within this distance, the localizer is wrong: brake instead of continuing. */
+    public static double MAX_ACCEL_INCHES = 48;
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -276,10 +345,14 @@ class ForwardDeceleration extends TuningOpMode<Double> {
         localizer.setPose(Pose.zero());
         localizer.update();
 
+        DriveGuard guard = new DriveGuard(MAX_ACCEL_INCHES, 3.0, true);
+        guard.reset();
         drivetrain.drive(power, false);
 
-        while (!stopping) {
+        while (!stopping && !isStopRequested()) {
             localizer.update();
+            DriveGuard.checkAxis(localizer, drivetrain, true);
+            guard.check(localizer, drivetrain);
             double currentVelocity = localizer.twist().toVector2D().x();
             if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
@@ -291,8 +364,10 @@ class ForwardDeceleration extends TuningOpMode<Double> {
         }
 
         boolean end = false;
+        ElapsedTime coastTimer = new ElapsedTime();
 
-        while (!end) {
+        // Motors are already off here; this only measures the coast-down, so give up after a few seconds.
+        while (!end && !isStopRequested() && coastTimer.seconds() < 4.0) {
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().x();
             long currentTimeNano = System.nanoTime();
@@ -335,6 +410,8 @@ class StrafeDeceleration extends TuningOpMode<Double> {
     double velocity;
 
     private final ArrayList<Double> accelerations = new ArrayList<>();
+    /** If the target speed isn't reached within this distance, the localizer is wrong: brake instead of continuing. */
+    public static double MAX_ACCEL_INCHES = 48;
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -367,10 +444,14 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         localizer.setPose(Pose.zero());
         localizer.update();
 
+        DriveGuard guard = new DriveGuard(MAX_ACCEL_INCHES, 3.0, true);
+        guard.reset();
         drivetrain.drive(power, false);
 
-        while (!stopping) {
+        while (!stopping && !isStopRequested()) {
             localizer.update();
+            DriveGuard.checkAxis(localizer, drivetrain, false);
+            guard.check(localizer, drivetrain);
             double currentVelocity = localizer.twist().toVector2D().y();
             if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
@@ -382,8 +463,10 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         }
 
         boolean end = false;
+        ElapsedTime coastTimer = new ElapsedTime();
 
-        while (!end) {
+        // Motors are already off here; this only measures the coast-down, so give up after a few seconds.
+        while (!end && !isStopRequested() && coastTimer.seconds() < 4.0) {
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().y();
             long currentTimeNano = System.nanoTime();
@@ -694,6 +777,10 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     public double brakingPower = 0.001;
     public double distance;
     public double IDLE_SECONDS = 1;
+    /** Allowed overshoot past the run distance (and to the side) before a safety stop. Coasting from top speed is ~15 in. */
+    public double SAFETY_MARGIN = 30;
+    public double MAX_DRIVE_SECONDS = 5;
+    private final ElapsedTime driveTimer = new ElapsedTime();
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -735,8 +822,11 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
         drivetrain.drive(new DrivePowers(maxPower,0,0), false);
 
+        driveTimer.reset();
+
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            checkSafety(localizer, drivetrain);
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -767,12 +857,17 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
                 }
                 case WAIT: {
                     drivetrain.stop();
-                    if (timer.seconds() > IDLE_SECONDS) state = State.DRIVE;
+                    if (timer.seconds() > IDLE_SECONDS) {
+                        state = State.DRIVE;
+                        driveTimer.reset();
+                    }
                     break;
                 }
                 case DONE: {}
             }
         }
+
+        drivetrain.stop(true);
 
         if (state == State.DONE) {
             double[] c = quadraticFit(velocityToBrakingDistance);
@@ -794,6 +889,22 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
         drivetrain.drive(new DrivePowers(power * direction, 0.0, getHeadingPower(localizer)), false);
+    }
+
+    /** Keeps the back-and-forth runs inside the run distance plus SAFETY_MARGIN; see {@link DriveGuard}. */
+    private void checkSafety(Localizer localizer, Drivetrain drivetrain) {
+        double x = localizer.pose().x();
+        double y = localizer.pose().y();
+        String problem = null;
+        if (Math.abs(x) > distance + SAFETY_MARGIN || Math.abs(y) > SAFETY_MARGIN) {
+            problem = String.format(Locale.US, "robot at x=%.1f, y=%.1f, outside %.0f in forward / %.0f in sideways", x, y, distance + SAFETY_MARGIN, SAFETY_MARGIN);
+        } else if (state == State.DRIVE && driveTimer.seconds() > MAX_DRIVE_SECONDS) {
+            problem = String.format(Locale.US, "drive run took over %.0f s (x=%.1f), the localizer may not be tracking", MAX_DRIVE_SECONDS, x);
+        }
+        if (problem != null) {
+            drivetrain.stop(true);
+            throw new IllegalStateException("Safety stop: " + problem);
+        }
     }
 
     private void brake(Drivetrain drivetrain, Localizer localizer) {
@@ -862,6 +973,10 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     public double brakingPower = 0.001;
     public double distance;
     public double IDLE_SECONDS = 1;
+    /** Allowed overshoot past the run distance (and to the side) before a safety stop. Coasting from top speed is ~15 in. */
+    public double SAFETY_MARGIN = 30;
+    public double MAX_DRIVE_SECONDS = 5;
+    private final ElapsedTime driveTimer = new ElapsedTime();
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -903,8 +1018,11 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
         drivetrain.drive(new DrivePowers(0,maxPower,0), false);
 
+        driveTimer.reset();
+
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            checkSafety(localizer, drivetrain);
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -936,12 +1054,17 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
                 }
                 case WAIT: {
                     drivetrain.stop();
-                    if (timer.seconds() > IDLE_SECONDS) state = State.DRIVE;
+                    if (timer.seconds() > IDLE_SECONDS) {
+                        state = State.DRIVE;
+                        driveTimer.reset();
+                    }
                     break;
                 }
                 case DONE: {}
             }
         }
+
+        drivetrain.stop(true);
 
         if (state == State.DONE) {
             double[] c = quadraticFit(velocityToBrakingDistance);
@@ -962,6 +1085,22 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
         drivetrain.drive(new DrivePowers(0.0, power * direction, getHeadingPower(localizer)), false);
+    }
+
+    /** Keeps the left-and-right runs inside the run distance plus SAFETY_MARGIN; see {@link DriveGuard}. */
+    private void checkSafety(Localizer localizer, Drivetrain drivetrain) {
+        double x = localizer.pose().x();
+        double y = localizer.pose().y();
+        String problem = null;
+        if (Math.abs(y) > distance + SAFETY_MARGIN || Math.abs(x) > SAFETY_MARGIN) {
+            problem = String.format(Locale.US, "robot at x=%.1f, y=%.1f, outside %.0f in sideways / %.0f in forward", x, y, distance + SAFETY_MARGIN, SAFETY_MARGIN);
+        } else if (state == State.DRIVE && driveTimer.seconds() > MAX_DRIVE_SECONDS) {
+            problem = String.format(Locale.US, "drive run took over %.0f s (y=%.1f), the localizer may not be tracking", MAX_DRIVE_SECONDS, y);
+        }
+        if (problem != null) {
+            drivetrain.stop(true);
+            throw new IllegalStateException("Safety stop: " + problem);
+        }
     }
 
     private void brake(Drivetrain drivetrain, Localizer localizer) {
