@@ -21,12 +21,13 @@ public class DriveWithController extends CommandBase {
 
     @Override
     public void execute() {
-        // Pedro wants +forward, +left, +counterclockwise. GamepadEx.getLeftY() is already +up,
-        // but getLeftX()/getRightX() are +right, so those two are negated.
+        // Pedro wants +forward, +left, +counterclockwise. GamepadEx.getLeftY() is already +up
+        // (SolversLib negates left_stick_y for you), so it is NOT negated here. getLeftX()/getRightX()
+        // are +right, so those two ARE negated. Flipping any of these signs inverts that stick.
         drivetrain.driveRobotCentric(
-                -controller.getLeftY(),
-                controller.getLeftX(),
-                controller.getRightX()
+                controller.getLeftY(),
+                -controller.getLeftX(),
+                -controller.getRightX()
         );
     }
 
