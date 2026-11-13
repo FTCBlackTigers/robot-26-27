@@ -25,13 +25,12 @@ public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
         // Must match the Driver Station configuration exactly (case-sensitive)
         c.frontLeftName.set("LF");
-        c.backLeftName.set("LB");
         c.frontRightName.set("RF");
+        c.backLeftName.set("LB");
         c.backRightName.set("RB");
-
         c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
-        c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
+        c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
 
         c.powerThreshold.set(0.01);
@@ -45,8 +44,8 @@ public class Constants {
         // yPodOffset = how far FORWARD of center the strafe-tracking (Y) pod is (back = negative).
         // The Y pod is physically at the back of the robot, so the tuner's positive Y sign is suspect.
         // To check: spin the robot 180 degrees in place, x and y should barely change. If x jumps, Y is wrong.
-        c.xPodOffset.set(5.24);
-        c.yPodOffset.set(4.37);
+        c.xPodOffset.set(4.404721597986897);
+        c.yPodOffset.set(3.713908157949373);
         c.offsetUnits.set(DistanceUnit.INCH);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
