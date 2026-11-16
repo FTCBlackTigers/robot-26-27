@@ -5,7 +5,7 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 /**
- * Runs the intake while the button is held (bound with whenHeld in Robot.java).
+ * Runs the intake in reverse while the button is held.
  * Copy this file as a template for new commands.
  */
 public class IntakeOut extends CommandBase {
@@ -18,7 +18,6 @@ public class IntakeOut extends CommandBase {
 
     // Runs once when the command starts
     @Override
-        // motor.setPower(1);
     public void initialize() {
         intake.outtake();
     }
@@ -27,5 +26,9 @@ public class IntakeOut extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         intake.stop();
+    }
+    @Override
+    public boolean isFinished() {
+    return false;
     }
 }

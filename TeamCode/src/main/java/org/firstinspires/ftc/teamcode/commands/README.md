@@ -13,6 +13,7 @@ several subsystems (same layout as robot-25-26). Right now there's only:
 
 - `drive/DriveWithController`: driving from the gamepad (TeleOp default command)
 - `intake/IntakeIn`: the example to copy when writing a new command
+- `shooter/ShooterCommand`: runs the shooter while operator A is held
 - `drive/AimAtTarget`: turns to face the Limelight target while driver RB is held (built so a turret can use it later)
 
 **When to write a class vs. a one-liner:** if the action just calls one method, write it inline in

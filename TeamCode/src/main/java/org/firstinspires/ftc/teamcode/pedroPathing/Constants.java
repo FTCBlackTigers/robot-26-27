@@ -25,13 +25,12 @@ public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
         // Must match the Driver Station configuration exactly (case-sensitive)
         c.frontLeftName.set("LF");
-        c.backLeftName.set("LB");
         c.frontRightName.set("RF");
+        c.backLeftName.set("LB");
         c.backRightName.set("RB");
-
         c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
-        c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
+        c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
 
         c.powerThreshold.set(0.01);
@@ -40,15 +39,24 @@ public class Constants {
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
-        c.xPodOffset.set(-5.0);
-        c.yPodOffset.set(0.5);
+        // From PinpointTuner, latest run 2026-11-13 (goBILDA convention). Not settled: the 2026-11-06 runs gave
+        // 5.24 / 4.37, and a tape measure on 2026-11-02 gave 14.5 cm left / 21 cm back (+5.7 / -8.3 in).
+        // xPodOffset = how far LEFT of center the forward-tracking (X) pod is (right = negative),
+        // yPodOffset = how far FORWARD of center the strafe-tracking (Y) pod is (back = negative).
+        // The Y pod is physically at the back of the robot, so the tuner's positive Y sign is suspect.
+        // To check: spin the robot 180 degrees in place, x and y should barely change. If x jumps, Y is wrong.
+        c.xPodOffset.set(4.404721597986897);
+        c.yPodOffset.set(3.713908157949373);
         c.offsetUnits.set(DistanceUnit.INCH);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
     });
 
+    // NOT TUNED ON THIS ROBOT YET. Every number in this block is the quickstart's sample (unchanged since the
+    // Pedro 3.0 import, commit 4d32c95), measured on someone else's robot. Run the Foresight Tuner to the end
+    // and paste its generated config over this whole block.
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
         // The end constraints (timeoutConstraint etc.) that decide when FollowPathCommand and HoldPointCommand finish
         // also go here, see https://pedropathing.com/docs/pathing/reference/endconstraints
